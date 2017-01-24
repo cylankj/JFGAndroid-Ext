@@ -1,0 +1,149 @@
+//http://qkxue.net/info/55679/Android-studio-Android-Library-JCenter
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+// load properties
+Properties properties = new Properties()
+properties.load(project.file('module.properties').newDataInputStream())
+// read properties
+def projectRepo = properties.getProperty("project.repo")
+def projectName = properties.getProperty("project.name")
+def projectGroupId = properties.getProperty("project.groupId")
+def projectArtifactId = properties.getProperty("project.artifactId")
+def projectVersionName = properties.getProperty("project.versionName")
+def projectPackaging = properties.getProperty("project.packaging")
+def projectSiteUrl = properties.getProperty("project.siteUrl")
+def projectGitUrl = properties.getProperty("project.gitUrl")
+
+def developerId = properties.getProperty("developer.id")
+def developerName = properties.getProperty("developer.name")
+def developerEmail = properties.getProperty("developer.email")
+
+def bintrayUser = properties.getProperty("bintray.user")
+def bintrayApikey = properties.getProperty("bintray.apikey")
+
+def javadocName = properties.getProperty("javadoc.name")
+def javadocLink = properties.getProperty("javadoc.link")
+
+//必须有这一行.
+group = projectGroupId
+task installPom() {
+    pom {
+        project {
+            name projectName
+            groupId projectGroupId
+            artifactId projectArtifactId
+            version project.getVersion()
+            packaging projectPackaging
+            url projectSiteUrl
+            licenses {
+                license {
+                    name 'The Apache Software License, Version  2.0'
+                    url ' http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+            developers {
+                developer {
+                    id developerId
+                    name developerName
+                    email developerEmail
+                }
+            }
+            scm {
+                connection projectGitUrl
+                developerConnection projectGitUrl
+                url projectSiteUrl
+            }
+        }
+    }.writeTo("build/publications/jar/pom-default.xml")
+}
+task copyTask(type: Copy) {
+    from 'build/publications/jar/pom-default.xml'
+    into 'build/poms/'
+}
+build.doLast {
+    copyTask.execute()
+}
+if (project.getPlugins().hasPlugin('com.android.application') ||
+        project.getPlugins().hasPlugin('com.android.library')) {
+    //Android Lib
+    task sourcesJar(type: Jar) {
+        from android.sourceSets.main.java.srcDirs
+        classifier = 'sources'
+    }
+    task javadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        options {
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            author true
+            version project.getVersion()
+            links javadocLink
+            title javadocName
+        }
+    }
+} else {
+    //Java Lib
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+// bintray configuration
+bintray {
+    user = bintrayUser
+    key = bintrayApikey
+    configurations = ['archives']
+    pkg {
+        repo = projectRepo
+        name = projectName
+        websiteUrl = projectSiteUrl
+        vcsUrl = projectGitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
+publishing {
+    publications {
+        jar(MavenPublication) {
+            groupId projectGroupId
+            version = project.getVersion()
+            artifactId projectArtifactId
+            artifact javadocJar
+            artifact sourcesJar
+            artifact("$buildDir/libs/${projectName}-${project.getVersion()}.jar")
+        }
+    }
+}
+artifactory {
+    contextUrl = 'http://localhost:8081/artifactory'
+    publish {
+        repository {
+            // The Artifactory repository key to publish to
+            repoKey = 'libs-release-local'
+            username = "admin"
+            password = "password"
+        }
+        defaults {
+            // Tell the Artifactory Plugin which artifacts should be published to Artifactory.
+            publications('jar')
+            publishArtifacts = true
+            // Properties to be attached to the published artifacts.
+            properties = ['com.easetern': 'core']
+            // Publish generated POM files to Artifactory (true by default)
+            publishPom = true
+        }
+    }
+}

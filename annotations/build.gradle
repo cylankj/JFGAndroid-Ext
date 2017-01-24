@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+Properties properties = new Properties()
+properties.load(project.file('module.properties').newDataInputStream())
+def projectVersionName = properties.getProperty("project.versionName")
+version = projectVersionName
+apply from: rootProject.file('gradle/bintrayUpload.gradle')
