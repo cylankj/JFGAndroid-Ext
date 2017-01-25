@@ -23,9 +23,9 @@ def javadocName = properties.getProperty("javadoc.name")
 def javadocLink = properties.getProperty("javadoc.link")
 
 Properties localProperties = new Properties()
-localProperties.load(project.rootProject.file('local.properties').newDataInputStream())
-def bintrayUser = properties.getProperty("bintray.user")
-def bintrayApikey = properties.getProperty("bintray.apikey")
+localProperties.load(project.file('../local.properties').newDataInputStream())
+def bintrayUser = localProperties.getProperty("bintray.user")
+def bintrayApikey = localProperties.getProperty("bintray.apikey")
 
 //必须有这一行.
 group = projectGroupId
