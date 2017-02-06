@@ -1,0 +1,35 @@
+apply plugin: 'com.android.library'
+
+Properties properties = new Properties()
+properties.load(project.file('module.properties').newDataInputStream())
+def projectVersionName = properties.getProperty("project.versionName")
+version =projectVersionName
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 1
+        versionName projectVersionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+apply from: rootProject.file('gradle/bintrayUpload.gradle')

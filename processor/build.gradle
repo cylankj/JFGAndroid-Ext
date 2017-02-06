@@ -13,4 +13,4 @@ Properties properties = new Properties()
 properties.load(project.file('module.properties').newDataInputStream())
 def projectVersionName = properties.getProperty("project.versionName")
 version = projectVersionName
-apply from: rootProject.file('gradle/bintrayUpload.gradle')
+//apply from: rootProject.file('gradle/bintrayUpload.gradle')
