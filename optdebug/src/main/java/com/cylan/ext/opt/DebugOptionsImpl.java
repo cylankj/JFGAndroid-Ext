@@ -31,11 +31,9 @@ public class DebugOptionsImpl {
         StrictMode.setThreadPolicy((new StrictMode.ThreadPolicy.Builder()).detectDiskReads().detectDiskWrites().detectNetwork().detectAll().penaltyLog().penaltyDialog().build());
     }
 
-    public static String getServer() {
+    public static String getServer(String filePath) {
         // Open the file
         try {
-            String filePath = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + File.separator + "Smarthome" + File.separator + "log" + File.separator + "config.txt";
             FileInputStream fstream = new FileInputStream(filePath);
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             String strLine = "";
@@ -50,7 +48,7 @@ public class DebugOptionsImpl {
             br.close();
             return content;
         } catch (IOException e) {
-            Log.e("IOException", ":" + e.getLocalizedMessage());
+            Log.d("IOException", ":" + e.getLocalizedMessage());
             return "";
         }
     }
